@@ -1,5 +1,5 @@
 {
   "database": {
-    "connection": "devConnection"
+    "connection": "mongodb://localhost/todosDB"
   }
 }
