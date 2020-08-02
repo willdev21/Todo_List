@@ -1,66 +1,83 @@
 const express = require("express");
 const { Todo, validate } = require("../models/todo");
+const asyncMiddleware = require("../middleware/async");
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
-  const todos = await Todo.find();
-  res.send(todos);
-});
+router.get(
+  "/",
+  asyncMiddleware(async (req, res) => {
+    const todos = await Todo.find();
 
-router.get("/:id", async (req, res) => {
-  const todo = await Todo.findById(req.params.id);
+    res.send(todos);
+  })
+);
 
-  if (!todo)
-    return res
-      .status(404)
-      .send(`The todo with the given ID could not be found.`);
+router.get(
+  "/:id",
+  asyncMiddleware(async (req, res) => {
+    const todo = await Todo.findById(req.params.id);
 
-  res.send(todo);
-});
+    if (!todo)
+      return res
+        .status(404)
+        .send(`The todo with the given ID could not be found.`);
 
-router.post("/", async (req, res) => {
-  const { error } = validate(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+    res.send(todo);
+  })
+);
 
-  let todo = new Todo({
-    title: req.body.title,
-    isComplete: req.body.isComplete,
-  });
+router.post(
+  "/",
+  asyncMiddleware(async (req, res) => {
+    const { error } = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
 
-  todo = await todo.save();
+    let todo = new Todo({
+      title: req.body.title,
+      isComplete: req.body.isComplete,
+    });
 
-  res.status(201).send(todo);
-});
+    todo = await todo.save();
 
-router.put("/:id", async (req, res) => {
-  const { error } = validate(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+    res.status(201).send(todo);
+  })
+);
 
-  const todo = await Todo.findById(req.params.id);
+router.put(
+  "/:id",
+  asyncMiddleware(async (req, res) => {
+    const { error } = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
 
-  if (!todo)
-    return res
-      .status(404)
-      .send("The todo with the given ID could not be found.");
+    const todo = await Todo.findById(req.params.id);
 
-  todo.title = req.body.title;
-  todo.isComplete = req.body.isComplete;
+    if (!todo)
+      return res
+        .status(404)
+        .send("The todo with the given ID could not be found.");
 
-  const result = await todo.save();
+    todo.title = req.body.title;
+    todo.isComplete = req.body.isComplete;
 
-  res.send(result);
-});
+    const result = await todo.save();
 
-router.delete("/:id", async (req, res) => {
-  const todo = await Todo.findByIdAndDelete(req.params.id);
+    res.send(result);
+  })
+);
 
-  if (!todo)
-    return res
-      .status(404)
-      .send("The todo with the given ID could not be found.");
+router.delete(
+  "/:id",
+  asyncMiddleware(async (req, res) => {
+    const todo = await Todo.findByIdAndDelete(req.params.id);
 
-  res.send(todo);
-});
+    if (!todo)
+      return res
+        .status(404)
+        .send("The todo with the given ID could not be found.");
+
+    res.send(todo);
+  })
+);
 
 module.exports = router;
